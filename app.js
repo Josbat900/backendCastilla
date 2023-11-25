@@ -1,8 +1,11 @@
 const express = require('express');
 const app = express()
 const {Pool} = require('pg');
+const swaggerJsdoc = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 const authMiddleware = require('./apikeycb.js')
 const PORT = 3000;
+
 app.use(express.json());
 app.use(authMiddleware)
 
@@ -15,7 +18,36 @@ const pool = new Pool({
     ssl: {rejectUnauthorized: false}
 });
 
-
+// Definir la configuración de Swagger
+const options = {
+    definition: {
+      openapi: '3.0.0',
+      info: {
+        title: 'Mi API',
+        version: '1.0.0',
+      },
+    },
+    apis: ['app.js'], // Ruta al archivo que contiene las rutas de tu API
+  };
+  
+  const specs = swaggerJsdoc(options);
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+  
+  // Definir tus rutas aquí
+  app.get('/', (req, res) => {
+    res.send('Hola, mundo!');
+  });
+  
+  
+/**
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Retorna un saludo
+ *     responses:
+ *       200:
+ *         description: Respuesta exitosa
+ */
 app.get("/products",(req,res)=>{
     const listUsersQuery = `SELECT * FROM products;`;
     pool.query(listUsersQuery)
